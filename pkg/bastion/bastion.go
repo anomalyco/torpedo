@@ -102,7 +102,9 @@ func New() (*Bastion, error) {
 				"VpcId":            *vpc.VpcId,
 				"SecurityGroupIngress": []map[string]interface{}{
 					{
-						"IpProtocol": -1,
+						"IpProtocol": "tcp",
+						"FromPort":   2222,
+						"ToPort":     2222,
 						"CidrIp":     "0.0.0.0/0",
 					},
 				},
