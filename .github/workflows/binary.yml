@@ -12,14 +12,30 @@ concurrency: ${{ github.workflow }}-${{ github.ref }}
 permissions:
   contents: write
   packages: write
+  id-token: write
 
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
+    environment: release
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: arn:aws:iam::604439173067:role/github/torpedo-release
+          role-session-name: torpedo-${{ github.run_id }}
+          aws-region: us-east-1
+
+      - name: Fetch the release secrets
+        uses: aws-actions/aws-secretsmanager-get-secrets@2297f9a879480a9e3af9b293ed15c70caf8e1c88 # v3.0.2
+        with:
+          secret-ids: |
+            AUR_KEY,shared/AUR_SSH_KEY
+          parse-json-secrets: false
 
       - run: git fetch --force --tags
 
@@ -37,4 +53,4 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.SST_GITHUB_TOKEN }}
-          AUR_KEY: ${{ secrets.AUR_KEY }}
+          AUR_KEY: ${{ env.AUR_KEY }}
